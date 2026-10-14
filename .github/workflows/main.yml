@@ -1,11 +1,11 @@
 name: Build And Release
 
 on:
+  workflow_dispatch:
+
   push:
     tags:
       - "v*"
-
-  workflow_dispatch:
 
 permissions:
   contents: write
@@ -18,7 +18,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup JDK 21
+      - name: Setup JDK
         uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -30,13 +30,28 @@ jobs:
       - name: Build
         run: ./gradlew clean build
 
-      - name: Find Artifacts
+      - name: Collect artifacts
         run: |
-          mkdir release
-          find . -type f \( -name "*.jar" -o -name "*.apk" -o -name "*.aab" \) \
-          -exec cp {} release/ \;
+          mkdir -p release
 
-      - name: Create Release
+          find . -type f \( \
+            -name "*.apk" -o \
+            -name "*.aab" -o \
+            -name "*.jar" \
+          \) -exec cp {} release/ \;
+
+          ls -lh release/
+
+      # Actions页面可下载
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: read-build
+          path: release/*
+
+      # 只有Tag时才创建Release
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           files: release/*
