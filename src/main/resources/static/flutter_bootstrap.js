@@ -37,8 +37,9 @@ if (!window._flutter) {
 _flutter.buildConfig = {"engineRevision":"db373eb85a06eb3d706af362a45d42d0972f4b46","builds":[{"compileTarget":"dart2js","renderer":"canvaskit","mainJsPath":"main.dart.js"},{}]};
 
 _flutter.loader.load({
-      config: {
-    renderer: "html"
+   config: {
+    renderer: "auto",
+    canvasKitBaseUrl: "./canvaskit/"
   },
   serviceWorkerSettings: {
     serviceWorkerVersion: "139510943"
