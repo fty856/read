@@ -1,11 +1,12 @@
-name: Build And Release
+name: Manual Release
 
 on:
-  push:
-    tags:
-      - "v*"
-
   workflow_dispatch:
+    inputs:
+      version:
+        description: "发布版本号（例如 v1.0.0）"
+        required: true
+        default: "v1.0.0"
 
 permissions:
   contents: write
@@ -27,28 +28,25 @@ jobs:
       - name: Grant execute permission
         run: chmod +x gradlew
 
-      - name: Build Jar
-        run: ./gradlew clean jar
+      - name: Build
+        run: ./gradlew clean build
 
-      - name: Collect Jar
+      - name: Collect JAR
         run: |
-          mkdir release
-          find . -type f -name "*.jar" \
+          mkdir -p release
+
+          find build -type f -name "*.jar" \
             ! -name "*-sources.jar" \
             ! -name "*-javadoc.jar" \
             -exec cp {} release/ \;
 
-          ls -lh release
+          echo "Collected files:"
+          ls -lah release/
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: jar-package
-          path: release/*.jar
-
-      - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: release/*.jar
+          tag_name: ${{ github.event.inputs.version }}
+          name: Release ${{ github.event.inputs.version }}
           generate_release_notes: true
+          files: release/*.jar
